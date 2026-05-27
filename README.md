@@ -89,8 +89,8 @@ El proyecto sigue la metodología **CRISP-DM**:
 
 ## Modelos predictivos
 
-*Regresión Líneal Simple
-*Arbol de decisión
+* Regresión Líneal Simple
+* Arbol de decisión
 
 ## Errores durante el proceso
 * Cantidad de nulos en distintas columnas.

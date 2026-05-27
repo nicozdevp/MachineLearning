@@ -63,12 +63,16 @@ El proyecto sigue la metodología **CRISP-DM**:
    * Estandarización de datos
    * Limpieza de valores
 
-4. **Modeling (base)**
+4. **Modeling **
    Preparación del dataset para modelos predictivos.
 
-5. **Evaluation (inicial)**
+5. **Evaluation **
    Uso de matriz de correlación y heatmap para analizar relaciones.
 
+6. **Training**
+   Se entrena el modelo de Regresión Lineal Simple.
+   Tras los resultados y los pocos %, se utiliza otro modelo.
+   Arbol de decisión.
 ---
 
 ## Análisis realizado
@@ -79,13 +83,19 @@ El proyecto sigue la metodología **CRISP-DM**:
 * Estandarización de variables numéricas
 * Construcción de matriz de correlación
 * Visualización de datos con heatmap
+* Predicción en 2 modelos.
 
 ---
 
-## Aplicaciones de Machine Learning
+## Modelos predictivos
 
-Por definir.
+*Regresión Líneal Simple
+*Arbol de decisión
 
+## Errores durante el proceso
+* Cantidad de nulos en distintas columnas.
+* Binary Code mal ejecutado en variable categorica.
+* Bajo porcentaje de predicción del modelo de regresión lineal simple.
 
 ---
 

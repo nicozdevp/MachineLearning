@@ -302,8 +302,42 @@ MachineLearning-MineriadeDatos/
 │   ├── metricas_clasificacion.csv
 │   ├── matriz_confusion.csv
 │   └── distribucion_categorias.csv
+├── dashboard_inmobiliario.html            ← Dashboard interactivo con los datos ya explotados
 └── README.md
 ```
+
+---
+
+## Dashboard interactivo (datos explotados)
+
+Para comunicar los resultados del análisis de forma visual, se construyó un dashboard HTML autocontenido: **[`dashboard_inmobiliario.html`](dashboard_inmobiliario.html)**. Se puede abrir directamente en cualquier navegador, sin necesidad de instalar nada.
+
+El dashboard toma los datos ya procesados por el notebook (limpieza, outliers, predicciones y métricas) y los presenta en un formato ejecutivo, pensado para que cualquier persona — no solo quien programó el modelo — pueda entender los hallazgos de un vistazo.
+
+**Contenido del dashboard:**
+
+* **Filtro por ciudad**, para explorar el mercado de Dhaka, Chattogram, Cumilla, Narayanganj y Gazipur por separado
+* **KPIs generales** del dataset (5.381 propiedades analizadas)
+* **Precio promedio por ciudad** — confirma que Dhaka, la capital, lidera el valor del mercado
+* **Distribución de propiedades por rango de precio** (Bajo / Medio / Alto), según los percentiles 25 y 75
+* **Precio frente a superficie construida** (scatter plot) — muestra que el tamaño influye, pero no determina el precio: la ubicación introduce saltos que el área por sí sola no explica
+* **Comparación de modelos de clasificación** (Árbol de Decisión vs. Naive Bayes)
+* **Comparación de modelos de regresión** (Regresión Lineal vs. Árbol de Decisión Regresor)
+* **Veredicto final**: el Árbol de Decisión es el modelo que mejor performa tanto en clasificación como en regresión, por su capacidad de generar reglas de corte según la zona geográfica
+
+### Reporte complementario en Looker Studio
+
+Además del dashboard HTML, los datos exportados a `looker_data/` fueron utilizados para construir un reporte en **Google Looker Studio (Data Studio)**, disponible en:
+
+🔗 [Ver reporte en Looker Studio](https://datastudio.google.com/reporting/3016b38e-17e5-4591-9b36-9e0b6c7ca9fa)
+
+Este reporte permite explorar de forma interactiva las estadísticas por ciudad, la matriz de confusión y las métricas de los modelos de regresión y clasificación, complementando la visualización ofrecida por el dashboard HTML.
+
+---
+
+## Acerca de este README
+
+Este archivo documenta el trabajo completo del proyecto: desde la fuente de datos y la metodología CRISP-DM aplicada, pasando por la limpieza y expansión del dataset mediante web scraping, hasta los modelos de Machine Learning entrenados (regresión y clasificación) y sus métricas de evaluación. También enlaza los dos artefactos visuales generados a partir de esos resultados: el dashboard HTML local y el reporte en Looker Studio.
 
 ---
 

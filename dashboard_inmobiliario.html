@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estate Analytics — Mercado Inmobiliario de Bangladesh</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --ink:#1c2620;          /* verde casi negro, texto principal */
+    --forest:#2f4a3c;       /* verde inmobiliario profundo */
+    --forest-soft:#416854;
+    --brass:#b08d4f;        /* latón / dorado acento */
+    --brass-light:#cda869;
+    --cream:#f6f1e7;        /* marfil de fondo */
+    --paper:#fffdf8;        /* tarjetas */
+    --line:#e3dbc9;         /* hairline */
+    --stone:#8a8273;        /* texto secundario */
+    --bajo:#7fa089;
+    --medio:#b08d4f;
+    --alto:#9c5a3c;
+    --shadow:0 1px 2px rgba(28,38,32,.04), 0 8px 24px rgba(28,38,32,.06);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1240px;margin:0 auto;padding:0 28px}
+
+  /* ---------- HEADER ---------- */
+  header.masthead{
+    background:
+      linear-gradient(180deg, rgba(28,38,32,.0) 0%, rgba(28,38,32,.0) 100%),
+      var(--forest);
+    color:var(--cream);
+    padding:38px 0 32px;
+    border-bottom:3px solid var(--brass);
+    position:relative;
+    overflow:hidden;
+  }
+  header.masthead::after{
+    content:"";position:absolute;inset:0;
+    background-image:radial-gradient(circle at 1px 1px, rgba(255,253,248,.05) 1px, transparent 0);
+    background-size:22px 22px;pointer-events:none;
+  }
+  .brand-row{display:flex;align-items:center;gap:14px;position:relative;z-index:1}
+  .key-mark{
+    width:42px;height:42px;flex:none;border:2px solid var(--brass-light);
+    border-radius:50%;display:grid;place-items:center;color:var(--brass-light);
+    font-family:'Fraunces',serif;font-size:22px;font-weight:600;
+  }
+  .brand-name{font-family:'Fraunces',serif;font-size:15px;letter-spacing:.32em;
+    text-transform:uppercase;color:var(--brass-light);font-weight:500}
+  .masthead h1{
+    font-family:'Fraunces',serif;font-weight:600;font-size:clamp(30px,4.6vw,52px);
+    line-height:1.04;margin-top:18px;max-width:18ch;position:relative;z-index:1;
+    letter-spacing:-.01em;
+  }
+  .masthead .sub{
+    margin-top:14px;max-width:60ch;color:rgba(246,241,231,.78);font-size:15.5px;
+    position:relative;z-index:1;
+  }
+  .dateline{
+    margin-top:20px;display:inline-flex;gap:18px;align-items:center;
+    font-size:12.5px;letter-spacing:.04em;color:rgba(246,241,231,.6);
+    position:relative;z-index:1;text-transform:uppercase;
+  }
+  .dateline b{color:var(--brass-light);font-weight:600}
+
+  /* ---------- FILTER BAR ---------- */
+  .filterbar{
+    background:var(--paper);border-bottom:1px solid var(--line);
+    position:sticky;top:0;z-index:20;box-shadow:0 1px 0 rgba(0,0,0,.02);
+  }
+  .filterbar .wrap{display:flex;align-items:center;gap:14px;padding-top:14px;padding-bottom:14px;flex-wrap:wrap}
+  .filter-label{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--stone);font-weight:600}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{
+    font-family:'Inter';font-size:13.5px;font-weight:500;
+    padding:8px 16px;border-radius:999px;border:1px solid var(--line);
+    background:transparent;color:var(--forest);cursor:pointer;transition:all .18s ease;
+  }
+  .chip:hover{border-color:var(--brass);color:var(--ink)}
+  .chip.active{background:var(--forest);color:var(--cream);border-color:var(--forest)}
+  .chip:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+
+  /* ---------- KPI STRIP ---------- */
+  .kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin:32px 0}
+  .kpi{
+    background:var(--paper);border:1px solid var(--line);border-radius:14px;
+    padding:22px 22px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+  }
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--brass)}
+  .kpi .label{font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--stone);font-weight:600}
+  .kpi .value{font-family:'Fraunces',serif;font-weight:600;font-size:30px;margin-top:10px;color:var(--ink);letter-spacing:-.01em}
+  .kpi .unit{font-size:13px;color:var(--stone);font-weight:500;margin-top:3px}
+
+  /* ---------- GRID ---------- */
+  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px;padding-bottom:48px}
+  .card{
+    background:var(--paper);border:1px solid var(--line);border-radius:14px;
+    padding:24px;box-shadow:var(--shadow);display:flex;flex-direction:column;
+  }
+  .span-7{grid-column:span 7}
+  .span-5{grid-column:span 5}
+  .span-6{grid-column:span 6}
+  .span-12{grid-column:span 12}
+
+  .card-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:4px}
+  .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--brass);font-weight:700}
+  .card h3{font-family:'Fraunces',serif;font-weight:600;font-size:20px;color:var(--ink);margin-top:6px;letter-spacing:-.01em}
+  .card .note{font-size:13px;color:var(--stone);margin-top:6px;margin-bottom:14px;max-width:54ch}
+  .chart-box{position:relative;flex:1;min-height:240px}
+  .chart-box.tall{min-height:300px}
+
+  /* ---------- MODEL TABLE ---------- */
+  table.models{width:100%;border-collapse:collapse;margin-top:8px;font-size:14px}
+  table.models th{
+    text-align:left;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--stone);font-weight:600;padding:10px 12px;border-bottom:1px solid var(--line);
+  }
+  table.models td{padding:13px 12px;border-bottom:1px solid var(--line);color:var(--ink)}
+  table.models tr:last-child td{border-bottom:none}
+  table.models .modelname{font-weight:600;font-family:'Fraunces',serif;font-size:15.5px}
+  .winner-tag{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--forest);
+    background:rgba(127,160,137,.18);padding:3px 9px;border-radius:999px;font-weight:700;margin-left:8px}
+  .metric-bar{height:6px;border-radius:3px;background:var(--line);margin-top:6px;overflow:hidden}
+  .metric-bar span{display:block;height:100%;background:var(--brass);border-radius:3px}
+  .big-r2{font-family:'Fraunces',serif;font-size:18px;font-weight:600}
+
+  /* ---------- VERDICT ---------- */
+  .verdict{
+    grid-column:span 12;background:var(--forest);color:var(--cream);
+    border-radius:14px;padding:30px 32px;display:grid;grid-template-columns:auto 1fr;gap:26px;align-items:center;
+    border:1px solid var(--forest);box-shadow:var(--shadow);
+  }
+  .verdict .seal{
+    width:74px;height:74px;border:2px solid var(--brass-light);border-radius:50%;
+    display:grid;place-items:center;color:var(--brass-light);font-family:'Fraunces',serif;
+    font-size:13px;text-align:center;line-height:1.1;font-weight:600;letter-spacing:.02em;flex:none;
+  }
+  .verdict h3{font-family:'Fraunces',serif;font-size:22px;font-weight:600;margin-bottom:8px;color:#fff}
+  .verdict p{color:rgba(246,241,231,.82);font-size:14.5px;max-width:80ch}
+  .verdict b{color:var(--brass-light)}
+
+  footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--stone);font-size:12.5px}
+  footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+  @media(max-width:1000px){
+    .kpi-strip{grid-template-columns:repeat(2,1fr)}
+    .span-7,.span-5,.span-6{grid-column:span 12}
+  }
+  @media(max-width:560px){
+    .wrap{padding:0 18px}
+    .kpi-strip{grid-template-columns:1fr 1fr}
+    .verdict{grid-template-columns:1fr;text-align:center}
+    .verdict .seal{margin:0 auto}
+  }
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="brand-row">
+      <div class="key-mark">E</div>
+      <div>
+        <div class="brand-name">Estate Analytics</div>
+      </div>
+    </div>
+    <h1>El valor de una vivienda en Bangladesh empieza por su ubicación.</h1>
+    <p class="sub">Análisis de 5.381 propiedades en cinco ciudades, con modelos de Machine Learning que predicen y clasifican el precio según sus características y su zona.</p>
+    <div class="dateline">
+      <span>Dataset <b>House Price · Bangladesh</b></span>
+      <span>Moneda <b>Taka (৳)</b></span>
+      <span>Modelos <b>Regresión · Árbol · Naive Bayes</b></span>
+    </div>
+  </div>
+</header>
+
+<div class="filterbar">
+  <div class="wrap">
+    <span class="filter-label">Filtrar por ciudad</span>
+    <div class="chips" id="cityChips"></div>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <section class="kpi-strip" id="kpiStrip"></section>
+
+  <section class="grid">
+
+    <!-- 2. Precio por ciudad -->
+    <div class="card span-7">
+      <div class="card-head"><div><div class="eyebrow">Mercado por zona</div><h3>Precio promedio por ciudad</h3></div></div>
+      <p class="note">Dhaka, la capital, encabeza el valor promedio. La ubicación pesa más que el tamaño al fijar el precio.</p>
+      <div class="chart-box"><canvas id="cityChart"></canvas></div>
+    </div>
+
+    <!-- 3. Distribución de categorías -->
+    <div class="card span-5">
+      <div class="card-head"><div><div class="eyebrow">Segmentación</div><h3>Propiedades por rango de precio</h3></div></div>
+      <p class="note">Cada vivienda se clasifica en Bajo, Medio o Alto según los percentiles 25 y 75 del mercado.</p>
+      <div class="chart-box"><canvas id="catChart"></canvas></div>
+    </div>
+
+    <!-- 4. Precio vs Área -->
+    <div class="card span-12">
+      <div class="card-head"><div><div class="eyebrow">Relación tamaño–valor</div><h3>Precio frente a superficie construida</h3></div></div>
+      <p class="note">Cada punto es una propiedad. La nube se dispersa: el área influye, pero no determina el precio por sí sola — la zona introduce saltos que el tamaño no explica.</p>
+      <div class="chart-box tall"><canvas id="scatterChart"></canvas></div>
+    </div>
+
+    <!-- 5. Clasificación -->
+    <div class="card span-7">
+      <div class="card-head"><div><div class="eyebrow">Modelos de clasificación</div><h3>Árbol de Decisión vs. Naive Bayes</h3></div></div>
+      <p class="note">Qué tan bien acierta cada modelo al asignar el rango de precio correcto a una propiedad.</p>
+      <div class="chart-box"><canvas id="clfChart"></canvas></div>
+    </div>
+
+    <!-- 6. Regresión -->
+    <div class="card span-5">
+      <div class="card-head"><div><div class="eyebrow">Modelos de regresión</div><h3>Predicción del precio exacto</h3></div></div>
+      <p class="note">R² mide cuánto del precio explica el modelo; el error es la desviación promedio en Takas.</p>
+      <table class="models" id="regTable"></table>
+    </div>
+
+    <!-- Verdict -->
+    <div class="verdict">
+      <div class="seal">MEJOR<br>MODELO</div>
+      <div>
+        <h3>El Árbol de Decisión gana en ambas tareas</h3>
+        <p id="verdictText"></p>
+      </div>
+    </div>
+
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Estate Analytics — Proyecto de Minería de Datos</span>
+    <span>Datos procesados con Python · scikit-learn · 5.381 propiedades</span>
+  </div>
+</footer>
+
+<script id="DASH_DATA" type="application/json">{"kpis": {"precio_prom": 11356742, "total": 5381, "area_prom": 1592, "precio_m2": 358962}, "ciudades": [{"ciudad": "Chattogram", "n": 1841, "prom": 10549165, "med": 7500000, "area": 1438}, {"ciudad": "Dhaka", "n": 1656, "prom": 12490509, "med": 8225000, "area": 1507}, {"ciudad": "Narayanganj-City", "n": 802, "prom": 10175855, "med": 7326500, "area": 2236}, {"ciudad": "Gazipur", "n": 556, "prom": 11671823, "med": 6930000, "area": 1615}, {"ciudad": "Cumilla", "n": 526, "prom": 12081303, "med": 7061500, "area": 1401}], "categorias": [{"cat": "Medio", "n": 2686}, {"cat": "Bajo", "n": 1356}, {"cat": "Alto", "n": 1339}], "scatter": [{"x": 1550, "y": 7750000, "c": "Chattogram", "cat": "Medio"}, {"x": 2530, "y": 25000000, "c": "Chattogram", "cat": "Alto"}, {"x": 1150, "y": 4600000, "c": "Chattogram", "cat": "Bajo"}, {"x": 1564, "y": 15000000, "c": "Chattogram", "cat": "Alto"}, {"x": 1686, "y": 11296200, "c": "Chattogram", "cat": "Medio"}, {"x": 990, "y": 3960000, "c": "Chattogram", "cat": "Bajo"}, {"x": 1700, "y": 10500000, "c": "Chattogram", "cat": "Medio"}, {"x": 1435, "y": 5740000, "c": "Chattogram", "cat": "Medio"}, {"x": 1544, "y": 9264000, "c": "Chattogram", "cat": "Medio"}, {"x": 1520, "y": 6000000, "c": "Chattogram", "cat": "Medio"}, {"x": 1592, "y": 8560000, "c": "Chattogram", "cat": "Medio"}, {"x": 2000, "y": 11000000, "c": "Chattogram", "cat": "Medio"}, {"x": 1300, "y": 7150000, "c": "Chattogram", "cat": "Medio"}, {"x": 1250, "y": 6500000, "c": "Chattogram", "cat": "Medio"}, {"x": 978, "y": 5000000, "c": "Chattogram", "cat": "Bajo"}, {"x": 1646, "y": 11028200, "c": "Chattogram", "cat": "Medio"}, {"x": 1500, "y": 6000000, "c": "Chattogram", "cat": "Medio"}, {"x": 1750, "y": 9500000, "c": "Chattogram", "cat": "Medio"}, {"x": 1465, "y": 9962000, "c": "Chattogram", "cat": "Medio"}, {"x": 1352, "y": 6760000, "c": "Chattogram", "cat": "Medio"}, {"x": 1545, "y": 7725000, "c": "Chattogram", "cat": "Medio"}, {"x": 1625, "y": 7512500, "c": "Chattogram", "cat": "Medio"}, {"x": 2600, "y": 13500000, "c": "Chattogram", "cat": "Alto"}, {"x": 1000, "y": 3200000, "c": "Chattogram", "cat": "Bajo"}, {"x": 1324, "y": 9400000, "c": "Chattogram", "cat": "Medio"}, {"x": 1160, "y": 29000000, "c": "Chattogram", "cat": "Alto"}, {"x": 200, "y": 4600000, "c": "Chattogram", "cat": "Bajo"}, {"x": 1646, "y": 11028200, "c": "Chattogram", "cat": "Medio"}, {"x": 2225, "y": 24200000, "c": "Chattogram", "cat": "Alto"}, {"x": 2520, "y": 7500000, "c": "Chattogram", "cat": "Medio"}, {"x": 1500, "y": 4950000, "c": "Chattogram", "cat": "Bajo"}, {"x": 1685, "y": 9267500, "c": "Chattogram", "cat": "Medio"}, {"x": 1337, "y": 7754600, "c": "Chattogram", "cat": "Medio"}, {"x": 1280, "y": 6000000, "c": "Chattogram", "cat": "Medio"}, {"x": 1790, "y": 7518000, "c": "Chattogram", "cat": "Medio"}, {"x": 1302, "y": 5859000, "c": "Chattogram", "cat": "Medio"}, {"x": 2000, "y": 11000000, "c": "Chattogram", "cat": "Medio"}, {"x": 1400, "y": 7700000, "c": "Chattogram", "cat": "Medio"}, {"x": 1500, "y": 11000000, "c": "Chattogram", "cat": "Medio"}, {"x": 1646, "y": 10039120, "c": "Chattogram", "cat": "Medio"}, {"x": 1800, "y": 12500000, "c": "Chattogram", "cat": "Medio"}, {"x": 1150, "y": 4600000, "c": "Chattogram", "cat": "Bajo"}, {"x": 1936, "y": 17300000, "c": "Chattogram", "cat": "Alto"}, {"x": 1337, "y": 7754600, "c": "Chattogram", "cat": "Medio"}, {"x": 2000, "y": 13000000, "c": "Chattogram", "cat": "Alto"}, {"x": 854, "y": 4500000, "c": "Chattogram", "cat": "Bajo"}, {"x": 950, "y": 3400000, "c": "Chattogram", "cat": "Bajo"}, {"x": 2200, "y": 12000000, "c": "Chattogram", "cat": "Medio"}, {"x": 1240, "y": 7000000, "c": "Chattogram", "cat": "Medio"}, {"x": 2506, "y": 15000000, "c": "Chattogram", "cat": "Alto"}, {"x": 2190, "y": 22500000, "c": "Chattogram", "cat": "Alto"}, {"x": 1350, "y": 9300000, "c": "Chattogram", "cat": "Medio"}, {"x": 4360, "y": 60900000, "c": "Chattogram", "cat": "Alto"}, {"x": 1700, "y": 8000000, "c": "Chattogram", "cat": "Medio"}, {"x": 1564, "y": 4500000, "c": "Chattogram", "cat": "Bajo"}, {"x": 1728, "y": 22000000, "c": "Chattogram", "cat": "Alto"}, {"x": 1162, "y": 6972000, "c": "Chattogram", "cat": "Medio"}, {"x": 1500, "y": 6000000, "c": "Chattogram", "cat": "Medio"}, {"x": 1752, "y": 13064000, "c": "Chattogram", "cat": "Alto"}, {"x": 1744, "y": 12000000, "c": "Chattogram", "cat": "Medio"}, {"x": 1616, "y": 11500000, "c": "Chattogram", "cat": "Medio"}, {"x": 2488, "y": 23600000, "c": "Chattogram", "cat": "Alto"}, {"x": 1150, "y": 4600000, "c": "Chattogram", "cat": "Bajo"}, {"x": 1550, "y": 12000000, "c": "Chattogram", "cat": "Medio"}, {"x": 1100, "y": 4400000, "c": "Chattogram", "cat": "Bajo"}, {"x": 1638, "y": 8000000, "c": "Chattogram", "cat": "Medio"}, {"x": 1080, "y": 5700000, "c": "Chattogram", "cat": "Medio"}, {"x": 1800, "y": 15824000, "c": "Chattogram", "cat": "Alto"}, {"x": 1300, "y": 7500000, "c": "Chattogram", "cat": "Medio"}, {"x": 1750, "y": 11000000, "c": "Chattogram", "cat": "Medio"}, {"x": 1331, "y": 6500000, "c": "Chattogram", "cat": "Medio"}, {"x": 1459, "y": 8462200, "c": "Chattogram", "cat": "Medio"}, {"x": 1300, "y": 10000000, "c": "Chattogram", "cat": "Medio"}, {"x": 1335, "y": 5340000, "c": "Chattogram", "cat": "Medio"}, {"x": 1180, "y": 7500000, "c": "Chattogram", "cat": "Medio"}, {"x": 1162, "y": 6972000, "c": "Chattogram", "cat": "Medio"}, {"x": 1493, "y": 9800000, "c": "Chattogram", "cat": "Medio"}, {"x": 1550, "y": 7750000, "c": "Chattogram", "cat": "Medio"}, {"x": 2540, "y": 29210000, "c": "Chattogram", "cat": "Alto"}, {"x": 200, "y": 2000000, "c": "Chattogram", "cat": "Bajo"}, {"x": 1700, "y": 11900000, "c": "Chattogram", "cat": "Medio"}, {"x": 1595, "y": 11000000, "c": "Chattogram", "cat": "Medio"}, {"x": 1250, "y": 6950000, "c": "Chattogram", "cat": "Medio"}, {"x": 1800, "y": 14040000, "c": "Chattogram", "cat": "Alto"}, {"x": 1350, "y": 6831000, "c": "Chattogram", "cat": "Medio"}, {"x": 815, "y": 3600000, "c": "Chattogram", "cat": "Bajo"}, {"x": 1740, "y": 11500000, "c": "Chattogram", "cat": "Medio"}, {"x": 1200, "y": 4500000, "c": "Chattogram", "cat": "Bajo"}, {"x": 1255, "y": 10000000, "c": "Chattogram", "cat": "Medio"}, {"x": 1150, "y": 4600000, "c": "Chattogram", "cat": "Bajo"}, {"x": 1200, "y": 6000000, "c": "Cumilla", "cat": "Medio"}, {"x": 1400, "y": 3920000, "c": "Cumilla", "cat": "Bajo"}, {"x": 1430, "y": 58000000, "c": "Cumilla", "cat": "Alto"}, {"x": 1200, "y": 7200000, "c": "Cumilla", "cat": "Medio"}, {"x": 1080, "y": 3800000, "c": "Cumilla", "cat": "Bajo"}, {"x": 3030, "y": 55100000, "c": "Cumilla", "cat": "Alto"}, {"x": 1301, "y": 5674000, "c": "Cumilla", "cat": "Medio"}, {"x": 1550, "y": 6510000, "c": "Cumilla", "cat": "Medio"}, {"x": 1085, "y": 8078000, "c": "Cumilla", "cat": "Medio"}, {"x": 1524, "y": 8530000, "c": "Cumilla", "cat": "Medio"}, {"x": 1250, "y": 9000000, "c": "Cumilla", "cat": "Medio"}, {"x": 1390, "y": 5560000, "c": "Cumilla", "cat": "Medio"}, {"x": 1645, "y": 13799999, "c": "Cumilla", "cat": "Alto"}, {"x": 1482, "y": 7409999, "c": "Cumilla", "cat": "Medio"}, {"x": 750, "y": 3000000, "c": "Cumilla", "cat": "Bajo"}, {"x": 1950, "y": 24400000, "c": "Cumilla", "cat": "Alto"}, {"x": 2148, "y": 23600000, "c": "Cumilla", "cat": "Alto"}, {"x": 1553, "y": 15500000, "c": "Cumilla", "cat": "Alto"}, {"x": 1350, "y": 7800000, "c": "Cumilla", "cat": "Medio"}, {"x": 1550, "y": 13500000, "c": "Cumilla", "cat": "Alto"}, {"x": 1265, "y": 5060000, "c": "Cumilla", "cat": "Medio"}, {"x": 1020, "y": 3570000, "c": "Cumilla", "cat": "Bajo"}, {"x": 1265, "y": 5692500, "c": "Cumilla", "cat": "Medio"}, {"x": 1450, "y": 5510000, "c": "Cumilla", "cat": "Medio"}, {"x": 1500, "y": 6010000, "c": "Cumilla", "cat": "Medio"}, {"x": 1330, "y": 5320000, "c": "Cumilla", "cat": "Medio"}, {"x": 1770, "y": 15500000, "c": "Cumilla", "cat": "Alto"}, {"x": 1600, "y": 10400000, "c": "Cumilla", "cat": "Medio"}, {"x": 1057, "y": 5250000, "c": "Cumilla", "cat": "Medio"}, {"x": 2100, "y": 4401000, "c": "Cumilla", "cat": "Bajo"}, {"x": 1175, "y": 5000000, "c": "Cumilla", "cat": "Bajo"}, {"x": 1500, "y": 5750000, "c": "Cumilla", "cat": "Medio"}, {"x": 1300, "y": 5590000, "c": "Cumilla", "cat": "Medio"}, {"x": 1470, "y": 5880000, "c": "Cumilla", "cat": "Medio"}, {"x": 1450, "y": 5900000, "c": "Cumilla", "cat": "Medio"}, {"x": 1250, "y": 10000000, "c": "Cumilla", "cat": "Medio"}, {"x": 2530, "y": 25000000, "c": "Cumilla", "cat": "Alto"}, {"x": 1380, "y": 5244000, "c": "Cumilla", "cat": "Medio"}, {"x": 1800, "y": 8550000, "c": "Cumilla", "cat": "Medio"}, {"x": 1708, "y": 15300000, "c": "Cumilla", "cat": "Alto"}, {"x": 1180, "y": 6400000, "c": "Cumilla", "cat": "Medio"}, {"x": 1550, "y": 6500000, "c": "Cumilla", "cat": "Medio"}, {"x": 1350, "y": 5130000, "c": "Cumilla", "cat": "Medio"}, {"x": 1972, "y": 19700000, "c": "Cumilla", "cat": "Alto"}, {"x": 1013, "y": 5000000, "c": "Cumilla", "cat": "Bajo"}, {"x": 1010, "y": 3535000, "c": "Cumilla", "cat": "Bajo"}, {"x": 1080, "y": 4800000, "c": "Cumilla", "cat": "Bajo"}, {"x": 1415, "y": 5665000, "c": "Cumilla", "cat": "Medio"}, {"x": 1415, "y": 5650000, "c": "Cumilla", "cat": "Medio"}, {"x": 1450, "y": 5510000, "c": "Cumilla", "cat": "Medio"}, {"x": 1390, "y": 5600000, "c": "Cumilla", "cat": "Medio"}, {"x": 1547, "y": 6965000, "c": "Cumilla", "cat": "Medio"}, {"x": 950, "y": 5225000, "c": "Cumilla", "cat": "Medio"}, {"x": 1150, "y": 8740000, "c": "Cumilla", "cat": "Medio"}, {"x": 1080, "y": 3780000, "c": "Cumilla", "cat": "Bajo"}, {"x": 1200, "y": 8400000, "c": "Cumilla", "cat": "Medio"}, {"x": 650, "y": 4075000, "c": "Cumilla", "cat": "Bajo"}, {"x": 1415, "y": 5660000, "c": "Cumilla", "cat": "Medio"}, {"x": 1390, "y": 5282000, "c": "Cumilla", "cat": "Medio"}, {"x": 2285, "y": 25000000, "c": "Cumilla", "cat": "Alto"}, {"x": 1316, "y": 5658800, "c": "Cumilla", "cat": "Medio"}, {"x": 1405, "y": 7676000, "c": "Cumilla", "cat": "Medio"}, {"x": 1390, "y": 5282000, "c": "Cumilla", "cat": "Medio"}, {"x": 2850, "y": 29900000, "c": "Cumilla", "cat": "Alto"}, {"x": 1200, "y": 8400000, "c": "Cumilla", "cat": "Medio"}, {"x": 1150, "y": 7200000, "c": "Cumilla", "cat": "Medio"}, {"x": 1400, "y": 7398999, "c": "Cumilla", "cat": "Medio"}, {"x": 1350, "y": 5130000, "c": "Cumilla", "cat": "Medio"}, {"x": 2100, "y": 30000000, "c": "Cumilla", "cat": "Alto"}, {"x": 1450, "y": 5900000, "c": "Cumilla", "cat": "Medio"}, {"x": 1547, "y": 6190000, "c": "Cumilla", "cat": "Medio"}, {"x": 1020, "y": 4080000, "c": "Cumilla", "cat": "Bajo"}, {"x": 1301, "y": 3047000, "c": "Cumilla", "cat": "Bajo"}, {"x": 1950, "y": 20900000, "c": "Cumilla", "cat": "Alto"}, {"x": 1100, "y": 6000000, "c": "Cumilla", "cat": "Medio"}, {"x": 1320, "y": 14500000, "c": "Cumilla", "cat": "Alto"}, {"x": 1400, "y": 4900000, "c": "Cumilla", "cat": "Bajo"}, {"x": 2340, "y": 18700000, "c": "Cumilla", "cat": "Alto"}, {"x": 710, "y": 3053000, "c": "Cumilla", "cat": "Bajo"}, {"x": 2000, "y": 10400000, "c": "Cumilla", "cat": "Medio"}, {"x": 1375, "y": 5250000, "c": "Cumilla", "cat": "Medio"}, {"x": 650, "y": 3250000, "c": "Cumilla", "cat": "Bajo"}, {"x": 1740, "y": 9600000, "c": "Cumilla", "cat": "Medio"}, {"x": 1200, "y": 9850000, "c": "Cumilla", "cat": "Medio"}, {"x": 1000, "y": 4400000, "c": "Cumilla", "cat": "Bajo"}, {"x": 1030, "y": 6280000, "c": "Cumilla", "cat": "Medio"}, {"x": 650, "y": 4000000, "c": "Cumilla", "cat": "Bajo"}, {"x": 1257, "y": 7591000, "c": "Cumilla", "cat": "Medio"}, {"x": 1500, "y": 6000000, "c": "Cumilla", "cat": "Medio"}, {"x": 1375, "y": 13100000, "c": "Cumilla", "cat": "Alto"}, {"x": 1255, "y": 6902500, "c": "Dhaka", "cat": "Medio"}, {"x": 1611, "y": 4500000, "c": "Dhaka", "cat": "Bajo"}, {"x": 1150, "y": 4870000, "c": "Dhaka", "cat": "Bajo"}, {"x": 1445, "y": 13000000, "c": "Dhaka", "cat": "Alto"}, {"x": 1250, "y": 8625000, "c": "Dhaka", "cat": "Medio"}, {"x": 1200, "y": 7500000, "c": "Dhaka", "cat": "Medio"}, {"x": 1125, "y": 5925000, "c": "Dhaka", "cat": "Medio"}, {"x": 1160, "y": 4408000, "c": "Dhaka", "cat": "Bajo"}, {"x": 1250, "y": 8200000, "c": "Dhaka", "cat": "Medio"}, {"x": 1250, "y": 7500000, "c": "Dhaka", "cat": "Medio"}, {"x": 850, "y": 7000000, "c": "Dhaka", "cat": "Medio"}, {"x": 1611, "y": 8500000, "c": "Dhaka", "cat": "Medio"}, {"x": 1396, "y": 9674000, "c": "Dhaka", "cat": "Medio"}, {"x": 1611, "y": 5700000, "c": "Dhaka", "cat": "Medio"}, {"x": 1578, "y": 12000000, "c": "Dhaka", "cat": "Medio"}, {"x": 1350, "y": 10800000, "c": "Dhaka", "cat": "Medio"}, {"x": 2000, "y": 22000000, "c": "Dhaka", "cat": "Alto"}, {"x": 1100, "y": 4950000, "c": "Dhaka", "cat": "Bajo"}, {"x": 1150, "y": 9000000, "c": "Dhaka", "cat": "Medio"}, {"x": 1225, "y": 5512500, "c": "Dhaka", "cat": "Medio"}, {"x": 650, "y": 3500000, "c": "Dhaka", "cat": "Bajo"}, {"x": 1872, "y": 13500000, "c": "Dhaka", "cat": "Alto"}, {"x": 1370, "y": 8500000, "c": "Dhaka", "cat": "Medio"}, {"x": 1703, "y": 8855600, "c": "Dhaka", "cat": "Medio"}, {"x": 650, "y": 4000000, "c": "Dhaka", "cat": "Bajo"}, {"x": 3600, "y": 34000000, "c": "Dhaka", "cat": "Alto"}, {"x": 1445, "y": 65199999, "c": "Dhaka", "cat": "Alto"}, {"x": 940, "y": 4800000, "c": "Dhaka", "cat": "Bajo"}, {"x": 1560, "y": 11200000, "c": "Dhaka", "cat": "Medio"}, {"x": 1430, "y": 12000000, "c": "Dhaka", "cat": "Medio"}, {"x": 975, "y": 5000000, "c": "Dhaka", "cat": "Bajo"}, {"x": 1700, "y": 13600000, "c": "Dhaka", "cat": "Alto"}, {"x": 852, "y": 4800000, "c": "Dhaka", "cat": "Bajo"}, {"x": 1245, "y": 6800000, "c": "Dhaka", "cat": "Medio"}, {"x": 1440, "y": 7300000, "c": "Dhaka", "cat": "Medio"}, {"x": 800, "y": 6950000, "c": "Dhaka", "cat": "Medio"}, {"x": 1290, "y": 6500000, "c": "Dhaka", "cat": "Medio"}, {"x": 600, "y": 2000000, "c": "Dhaka", "cat": "Bajo"}, {"x": 2045, "y": 23625000, "c": "Dhaka", "cat": "Alto"}, {"x": 1050, "y": 4800000, "c": "Dhaka", "cat": "Bajo"}, {"x": 1300, "y": 8000000, "c": "Dhaka", "cat": "Medio"}, {"x": 1425, "y": 8537500, "c": "Dhaka", "cat": "Medio"}, {"x": 1616, "y": 7272000, "c": "Dhaka", "cat": "Medio"}, {"x": 1500, "y": 25000000, "c": "Dhaka", "cat": "Alto"}, {"x": 2200, "y": 21000000, "c": "Dhaka", "cat": "Alto"}, {"x": 750, "y": 4000000, "c": "Dhaka", "cat": "Bajo"}, {"x": 3355, "y": 39000000, "c": "Dhaka", "cat": "Alto"}, {"x": 1450, "y": 10150000, "c": "Dhaka", "cat": "Medio"}, {"x": 700, "y": 3000000, "c": "Dhaka", "cat": "Bajo"}, {"x": 1700, "y": 6800000, "c": "Dhaka", "cat": "Medio"}, {"x": 1250, "y": 6250000, "c": "Dhaka", "cat": "Medio"}, {"x": 1250, "y": 9000000, "c": "Dhaka", "cat": "Medio"}, {"x": 1200, "y": 8700000, "c": "Dhaka", "cat": "Medio"}, {"x": 900, "y": 4050000, "c": "Dhaka", "cat": "Bajo"}, {"x": 1611, "y": 65000000, "c": "Dhaka", "cat": "Alto"}, {"x": 750, "y": 5200000, "c": "Dhaka", "cat": "Medio"}, {"x": 1200, "y": 8700000, "c": "Dhaka", "cat": "Medio"}, {"x": 2700, "y": 26500000, "c": "Dhaka", "cat": "Alto"}, {"x": 1550, "y": 14500000, "c": "Dhaka", "cat": "Alto"}, {"x": 1335, "y": 6007500, "c": "Dhaka", "cat": "Medio"}, {"x": 1310, "y": 12000000, "c": "Dhaka", "cat": "Medio"}, {"x": 1605, "y": 17000000, "c": "Dhaka", "cat": "Alto"}, {"x": 1495, "y": 7000000, "c": "Dhaka", "cat": "Medio"}, {"x": 1175, "y": 8300000, "c": "Dhaka", "cat": "Medio"}, {"x": 2258, "y": 28000000, "c": "Dhaka", "cat": "Alto"}, {"x": 650, "y": 4000000, "c": "Dhaka", "cat": "Bajo"}, {"x": 1050, "y": 4410000, "c": "Dhaka", "cat": "Bajo"}, {"x": 1365, "y": 8540000, "c": "Dhaka", "cat": "Medio"}, {"x": 3355, "y": 39000000, "c": "Dhaka", "cat": "Alto"}, {"x": 1250, "y": 7600000, "c": "Dhaka", "cat": "Medio"}, {"x": 1100, "y": 6100000, "c": "Dhaka", "cat": "Medio"}, {"x": 2787, "y": 29000000, "c": "Dhaka", "cat": "Alto"}, {"x": 1254, "y": 8300000, "c": "Dhaka", "cat": "Medio"}, {"x": 900, "y": 4000000, "c": "Dhaka", "cat": "Bajo"}, {"x": 1430, "y": 12000000, "c": "Dhaka", "cat": "Medio"}, {"x": 1185, "y": 7700000, "c": "Dhaka", "cat": "Medio"}, {"x": 1475, "y": 15550000, "c": "Dhaka", "cat": "Alto"}, {"x": 1120, "y": 5600000, "c": "Dhaka", "cat": "Medio"}, {"x": 800, "y": 6950000, "c": "Dhaka", "cat": "Medio"}, {"x": 1350, "y": 9500000, "c": "Dhaka", "cat": "Medio"}, {"x": 1250, "y": 7800000, "c": "Dhaka", "cat": "Medio"}, {"x": 1463, "y": 5852000, "c": "Dhaka", "cat": "Medio"}, {"x": 1500, "y": 12500000, "c": "Dhaka", "cat": "Medio"}, {"x": 1420, "y": 8200000, "c": "Dhaka", "cat": "Medio"}, {"x": 1225, "y": 5512500, "c": "Dhaka", "cat": "Medio"}, {"x": 850, "y": 5000000, "c": "Dhaka", "cat": "Bajo"}, {"x": 1300, "y": 6500000, "c": "Dhaka", "cat": "Medio"}, {"x": 1108, "y": 5500000, "c": "Dhaka", "cat": "Medio"}, {"x": 4372, "y": 65580000, "c": "Dhaka", "cat": "Alto"}, {"x": 1150, "y": 6700000, "c": "Dhaka", "cat": "Medio"}, {"x": 1300, "y": 10100000, "c": "Gazipur", "cat": "Medio"}, {"x": 800, "y": 2560000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1770, "y": 15000000, "c": "Gazipur", "cat": "Alto"}, {"x": 920, "y": 3220000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1650, "y": 12200000, "c": "Gazipur", "cat": "Medio"}, {"x": 2285, "y": 25000000, "c": "Gazipur", "cat": "Alto"}, {"x": 2050, "y": 10500000, "c": "Gazipur", "cat": "Medio"}, {"x": 1300, "y": 5200000, "c": "Gazipur", "cat": "Medio"}, {"x": 1174, "y": 4696000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1300, "y": 5200000, "c": "Gazipur", "cat": "Medio"}, {"x": 3030, "y": 55100000, "c": "Gazipur", "cat": "Alto"}, {"x": 980, "y": 1666000, "c": "Gazipur", "cat": "Bajo"}, {"x": 2880, "y": 4000000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1080, "y": 4320000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1150, "y": 4500000, "c": "Gazipur", "cat": "Bajo"}, {"x": 710, "y": 2000000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1000, "y": 4000000, "c": "Gazipur", "cat": "Bajo"}, {"x": 2850, "y": 34200000, "c": "Gazipur", "cat": "Alto"}, {"x": 1300, "y": 5200000, "c": "Gazipur", "cat": "Medio"}, {"x": 1050, "y": 3990000, "c": "Gazipur", "cat": "Bajo"}, {"x": 2100, "y": 30000000, "c": "Gazipur", "cat": "Alto"}, {"x": 2250, "y": 20700000, "c": "Gazipur", "cat": "Alto"}, {"x": 800, "y": 2560000, "c": "Gazipur", "cat": "Bajo"}, {"x": 2340, "y": 17600000, "c": "Gazipur", "cat": "Alto"}, {"x": 1398, "y": 6431000, "c": "Gazipur", "cat": "Medio"}, {"x": 1240, "y": 4960000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1000, "y": 4200000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1550, "y": 13200000, "c": "Gazipur", "cat": "Alto"}, {"x": 4320, "y": 10500000, "c": "Gazipur", "cat": "Medio"}, {"x": 1450, "y": 13000000, "c": "Gazipur", "cat": "Alto"}, {"x": 650, "y": 3250000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1185, "y": 4740000, "c": "Gazipur", "cat": "Bajo"}, {"x": 931, "y": 8286000, "c": "Gazipur", "cat": "Medio"}, {"x": 1515, "y": 6563000, "c": "Gazipur", "cat": "Medio"}, {"x": 950, "y": 3800000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1972, "y": 19700000, "c": "Gazipur", "cat": "Alto"}, {"x": 1240, "y": 4960000, "c": "Gazipur", "cat": "Bajo"}, {"x": 2765, "y": 630000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1259, "y": 4900000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1240, "y": 4960000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1240, "y": 4960000, "c": "Gazipur", "cat": "Bajo"}, {"x": 2190, "y": 22500000, "c": "Gazipur", "cat": "Alto"}, {"x": 1300, "y": 5200000, "c": "Gazipur", "cat": "Medio"}, {"x": 1259, "y": 4900000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1300, "y": 5200000, "c": "Gazipur", "cat": "Medio"}, {"x": 1200, "y": 9360000, "c": "Gazipur", "cat": "Medio"}, {"x": 1200, "y": 5700000, "c": "Gazipur", "cat": "Medio"}, {"x": 1448, "y": 8905000, "c": "Gazipur", "cat": "Medio"}, {"x": 1162, "y": 6242000, "c": "Gazipur", "cat": "Medio"}, {"x": 1950, "y": 24400000, "c": "Gazipur", "cat": "Alto"}, {"x": 1403, "y": 8718000, "c": "Gazipur", "cat": "Medio"}, {"x": 1080, "y": 4320000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1000, "y": 4300000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1300, "y": 5200000, "c": "Gazipur", "cat": "Medio"}, {"x": 1004, "y": 3815200, "c": "Gazipur", "cat": "Bajo"}, {"x": 1860, "y": 15000000, "c": "Gazipur", "cat": "Alto"}, {"x": 1240, "y": 4960000, "c": "Gazipur", "cat": "Bajo"}, {"x": 700, "y": 2240000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1300, "y": 5200000, "c": "Gazipur", "cat": "Medio"}, {"x": 1450, "y": 12300000, "c": "Gazipur", "cat": "Medio"}, {"x": 1850, "y": 18900000, "c": "Gazipur", "cat": "Alto"}, {"x": 1850, "y": 9990000, "c": "Gazipur", "cat": "Medio"}, {"x": 2488, "y": 23600000, "c": "Gazipur", "cat": "Alto"}, {"x": 915, "y": 4758000, "c": "Gazipur", "cat": "Bajo"}, {"x": 3600, "y": 324000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1000, "y": 4300000, "c": "Gazipur", "cat": "Bajo"}, {"x": 800, "y": 2560000, "c": "Gazipur", "cat": "Bajo"}, {"x": 3000, "y": 45900000, "c": "Gazipur", "cat": "Alto"}, {"x": 1250, "y": 9000000, "c": "Gazipur", "cat": "Medio"}, {"x": 1972, "y": 22700000, "c": "Gazipur", "cat": "Alto"}, {"x": 2410, "y": 42500000, "c": "Gazipur", "cat": "Alto"}, {"x": 920, "y": 3220000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1200, "y": 4900000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1240, "y": 4960000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1080, "y": 4320000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1350, "y": 4500000, "c": "Gazipur", "cat": "Bajo"}, {"x": 700, "y": 2240000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1300, "y": 6880000, "c": "Gazipur", "cat": "Medio"}, {"x": 1300, "y": 5200000, "c": "Gazipur", "cat": "Medio"}, {"x": 1320, "y": 14500000, "c": "Gazipur", "cat": "Alto"}, {"x": 5400, "y": 4400000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1000, "y": 4300000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1483, "y": 11200000, "c": "Gazipur", "cat": "Medio"}, {"x": 2800, "y": 34100000, "c": "Gazipur", "cat": "Alto"}, {"x": 920, "y": 3220000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1815, "y": 16200000, "c": "Gazipur", "cat": "Alto"}, {"x": 1350, "y": 9475000, "c": "Gazipur", "cat": "Medio"}, {"x": 920, "y": 3220000, "c": "Gazipur", "cat": "Bajo"}, {"x": 1025, "y": 5733000, "c": "Gazipur", "cat": "Medio"}, {"x": 1370, "y": 6781999, "c": "Gazipur", "cat": "Medio"}, {"x": 1075, "y": 7525000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 2160, "y": 4575000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 1200, "y": 7200000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 1645, "y": 12300000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 2160, "y": 4575000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 2850, "y": 35200000, "c": "Narayanganj-City", "cat": "Alto"}, {"x": 2160, "y": 3900000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 3600, "y": 7625000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 3600, "y": 5000000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 2160, "y": 4575000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 1480, "y": 10600000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 3600, "y": 6000000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 2160, "y": 4575000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 3600, "y": 7625000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 2850, "y": 36600000, "c": "Narayanganj-City", "cat": "Alto"}, {"x": 2160, "y": 3000000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 3600, "y": 7625000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 1260, "y": 5670000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 3600, "y": 7625000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 3600, "y": 7625000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 3600, "y": 7625000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 3600, "y": 7625000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 3600, "y": 7625000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 2160, "y": 4575000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 1200, "y": 9850000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 3600, "y": 7625000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 2016, "y": 11500000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 3600, "y": 18000000, "c": "Narayanganj-City", "cat": "Alto"}, {"x": 1370, "y": 8220000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 2160, "y": 4575000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 1030, "y": 6280000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 2160, "y": 4575000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 1800, "y": 6300000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 2850, "y": 34200000, "c": "Narayanganj-City", "cat": "Alto"}, {"x": 1200, "y": 8400000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 2160, "y": 4575000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 3600, "y": 7625000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 3600, "y": 7625000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 2160, "y": 4575000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 2160, "y": 4575000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 2160, "y": 4575000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 3600, "y": 7625000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 1700, "y": 11900000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 2160, "y": 3375000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 1800, "y": 12000000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 3600, "y": 7625000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 1100, "y": 6600000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 3600, "y": 5625000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 2160, "y": 4575000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 2315, "y": 24800000, "c": "Narayanganj-City", "cat": "Alto"}, {"x": 1150, "y": 4025000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 2160, "y": 4575000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 1770, "y": 18900000, "c": "Narayanganj-City", "cat": "Alto"}, {"x": 2225, "y": 24200000, "c": "Narayanganj-City", "cat": "Alto"}, {"x": 2160, "y": 4575000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 2160, "y": 4575000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 2880, "y": 14000000, "c": "Narayanganj-City", "cat": "Alto"}, {"x": 2340, "y": 18700000, "c": "Narayanganj-City", "cat": "Alto"}, {"x": 3600, "y": 5000000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 3600, "y": 6500000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 2160, "y": 4575000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 1746, "y": 14300000, "c": "Narayanganj-City", "cat": "Alto"}, {"x": 2160, "y": 3375000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 3600, "y": 7625000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 2160, "y": 4575000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 3600, "y": 5750000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 3600, "y": 6500000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 1515, "y": 6563000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 2160, "y": 4575000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 1210, "y": 7368000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 2160, "y": 4575000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 2160, "y": 3000000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 2160, "y": 4575000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 1550, "y": 15500000, "c": "Narayanganj-City", "cat": "Alto"}, {"x": 2160, "y": 3150000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 2160, "y": 4575000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 3600, "y": 7625000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 5400, "y": 30000000, "c": "Narayanganj-City", "cat": "Alto"}, {"x": 3600, "y": 7625000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 1420, "y": 7809999, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 2160, "y": 4575000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 1080, "y": 4536000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 1550, "y": 10200000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 1080, "y": 4212000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 3600, "y": 6000000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 3600, "y": 7625000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 2160, "y": 3375000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 2160, "y": 4575000, "c": "Narayanganj-City", "cat": "Bajo"}, {"x": 3600, "y": 7625000, "c": "Narayanganj-City", "cat": "Medio"}, {"x": 1375, "y": 10400000, "c": "Narayanganj-City", "cat": "Medio"}], "regresion": [{"modelo": "Regresion Lineal", "r2": 0.183, "mae": 5664914}, {"modelo": "Arbol de Decision", "r2": 0.479, "mae": 2942536}], "clasificacion": [{"modelo": "Arbol de Decision", "acc": 0.841, "prec": 0.842, "rec": 0.841, "f1": 0.841}, {"modelo": "Naive Bayes", "acc": 0.558, "prec": 0.566, "rec": 0.558, "f1": 0.51}], "cat_por_ciudad": {"Dhaka": {"Medio": 861, "Alto": 483, "Bajo": 312}, "Chattogram": {"Medio": 1009, "Bajo": 447, "Alto": 385}, "Cumilla": {"Medio": 272, "Alto": 149, "Bajo": 105}, "Narayanganj-City": {"Medio": 343, "Bajo": 292, "Alto": 167}, "Gazipur": {"Medio": 201, "Bajo": 200, "Alto": 155}}}</script>
+<script>
+const DATA = JSON.parse(document.getElementById('DASH_DATA').textContent);
+
+// ---- Paleta ----
+const C = {
+  ink:'#1c2620', forest:'#2f4a3c', forestSoft:'#416854', brass:'#b08d4f',
+  brassL:'#cda869', stone:'#8a8273', line:'#e3dbc9', cream:'#f6f1e7',
+  bajo:'#7fa089', medio:'#b08d4f', alto:'#9c5a3c'
+};
+const cityColors = ['#2f4a3c','#b08d4f','#416854','#9c5a3c','#cda869'];
+
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.color = C.stone;
+Chart.defaults.font.size = 12.5;
+
+let activeCity = 'Todas';
+
+// ---- Helpers de formato ----
+const fmtTk = n => '৳' + Intl.NumberFormat('en-US').format(Math.round(n));
+const fmtTkShort = n => {
+  if(n >= 1e6) return '৳' + (n/1e6).toFixed(1) + 'M';
+  if(n >= 1e3) return '৳' + (n/1e3).toFixed(0) + 'K';
+  return '৳' + n;
+};
+const fmtNum = n => Intl.NumberFormat('en-US').format(n);
+
+// ---- KPIs ----
+function renderKpis(){
+  let k = DATA.kpis;
+  let strip = document.getElementById('kpiStrip');
+  let scope;
+  if(activeCity === 'Todas'){
+    scope = {precio: k.precio_prom, total: k.total, area: k.area_prom};
+  } else {
+    let c = DATA.ciudades.find(x=>x.ciudad===activeCity);
+    scope = {precio: c.prom, total: c.n, area: c.area};
+  }
+  const items = [
+    {label:'Precio promedio', value:fmtTkShort(scope.precio), unit:'Takas por propiedad'},
+    {label:'Propiedades', value:fmtNum(scope.total), unit:activeCity==='Todas'?'en el dataset':'en '+activeCity},
+    {label:'Área promedio', value:fmtNum(scope.area), unit:'pies² construidos'},
+    {label:'Ciudades', value:'5', unit:'mercados analizados'}
+  ];
+  strip.innerHTML = items.map(i=>`
+    <div class="kpi">
+      <div class="label">${i.label}</div>
+      <div class="value">${i.value}</div>
+      <div class="unit">${i.unit}</div>
+    </div>`).join('');
+}
+
+// ---- Chips de ciudad ----
+function renderChips(){
+  let box = document.getElementById('cityChips');
+  let cities = ['Todas', ...DATA.ciudades.map(c=>c.ciudad)];
+  box.innerHTML = cities.map(c=>
+    `<button class="chip ${c===activeCity?'active':''}" data-city="${c}">${c}</button>`
+  ).join('');
+  box.querySelectorAll('.chip').forEach(ch=>{
+    ch.addEventListener('click', ()=>{
+      activeCity = ch.dataset.city;
+      renderChips(); renderKpis(); updateCharts();
+    });
+  });
+}
+
+let cityChart, catChart, scatterChart, clfChart;
+
+// ---- 2. Precio por ciudad ----
+function buildCityChart(){
+  let d = [...DATA.ciudades].sort((a,b)=>b.prom-a.prom);
+  cityChart = new Chart(document.getElementById('cityChart'), {
+    type:'bar',
+    data:{
+      labels:d.map(x=>x.ciudad),
+      datasets:[{
+        label:'Precio promedio',
+        data:d.map(x=>x.prom),
+        backgroundColor:d.map(x=>x.ciudad===activeCity||activeCity==='Todas'?C.forest:'#c9cfc4'),
+        borderRadius:6, barThickness:30
+      }]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>fmtTk(c.raw)}}},
+      scales:{
+        x:{grid:{color:C.line}, ticks:{callback:v=>fmtTkShort(v)}},
+        y:{grid:{display:false}, ticks:{font:{weight:600,size:13}, color:C.ink}}
+      }
+    }
+  });
+}
+function updateCityChart(){
+  cityChart.data.datasets[0].backgroundColor = cityChart.data.labels.map(
+    l => (l===activeCity||activeCity==='Todas') ? C.forest : '#c9cfc4'
+  );
+  cityChart.update();
+}
+
+// ---- 3. Categorías (doughnut) ----
+function catData(){
+  if(activeCity==='Todas'){
+    let m={Bajo:0,Medio:0,Alto:0};
+    DATA.categorias.forEach(c=>m[c.cat]=c.n);
+    return m;
+  }
+  return Object.assign({Bajo:0,Medio:0,Alto:0}, DATA.cat_por_ciudad[activeCity]||{});
+}
+function buildCatChart(){
+  let m = catData();
+  catChart = new Chart(document.getElementById('catChart'),{
+    type:'doughnut',
+    data:{
+      labels:['Bajo','Medio','Alto'],
+      datasets:[{
+        data:[m.Bajo,m.Medio,m.Alto],
+        backgroundColor:[C.bajo,C.medio,C.alto],
+        borderColor:C.cream, borderWidth:3, hoverOffset:6
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'62%',
+      plugins:{
+        legend:{position:'bottom', labels:{padding:16, usePointStyle:true, pointStyle:'circle', font:{size:13}}},
+        tooltip:{callbacks:{label:c=>` ${c.label}: ${fmtNum(c.raw)} propiedades`}}
+      }
+    }
+  });
+}
+function updateCatChart(){
+  let m=catData();
+  catChart.data.datasets[0].data=[m.Bajo,m.Medio,m.Alto];
+  catChart.update();
+}
+
+// ---- 4. Scatter precio vs área ----
+function scatterSets(){
+  let pts = activeCity==='Todas' ? DATA.scatter : DATA.scatter.filter(p=>p.c===activeCity);
+  // agrupar por ciudad para color
+  let byCity = {};
+  DATA.ciudades.forEach((c,i)=>byCity[c.ciudad]=cityColors[i%cityColors.length]);
+  let groups = {};
+  pts.forEach(p=>{(groups[p.c]=groups[p.c]||[]).push({x:p.x,y:p.y})});
+  return Object.keys(groups).map(city=>({
+    label:city,
+    data:groups[city],
+    backgroundColor:byCity[city]+'cc',
+    pointRadius:3.5, pointHoverRadius:6
+  }));
+}
+function buildScatter(){
+  scatterChart = new Chart(document.getElementById('scatterChart'),{
+    type:'scatter',
+    data:{datasets:scatterSets()},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'bottom', labels:{padding:14, usePointStyle:true, pointStyle:'circle'}},
+        tooltip:{callbacks:{label:c=>`${c.dataset.label} · ${fmtNum(c.raw.x)} pies² · ${fmtTk(c.raw.y)}`}}
+      },
+      scales:{
+        x:{title:{display:true,text:'Superficie (pies²)',color:C.stone,font:{size:12}},grid:{color:C.line},ticks:{callback:v=>fmtNum(v)}},
+        y:{title:{display:true,text:'Precio (Takas)',color:C.stone,font:{size:12}},grid:{color:C.line},ticks:{callback:v=>fmtTkShort(v)}}
+      }
+    }
+  });
+}
+function updateScatter(){
+  scatterChart.data.datasets = scatterSets();
+  scatterChart.update();
+}
+
+// ---- 5. Clasificación (barras agrupadas) ----
+function buildClfChart(){
+  let d = DATA.clasificacion;
+  clfChart = new Chart(document.getElementById('clfChart'),{
+    type:'bar',
+    data:{
+      labels:d.map(m=>m.modelo),
+      datasets:[
+        {label:'Accuracy', data:d.map(m=>m.acc), backgroundColor:C.forest, borderRadius:5, barPercentage:.7, categoryPercentage:.6},
+        {label:'F1-Score', data:d.map(m=>m.f1), backgroundColor:C.brass, borderRadius:5, barPercentage:.7, categoryPercentage:.6}
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'top', align:'end', labels:{usePointStyle:true,pointStyle:'circle',padding:14}},
+        tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${(c.raw*100).toFixed(1)}%`}}
+      },
+      scales:{
+        y:{min:0,max:1,grid:{color:C.line},ticks:{callback:v=>(v*100)+'%'}},
+        x:{grid:{display:false},ticks:{font:{weight:600,size:13.5},color:C.ink}}
+      }
+    }
+  });
+}
+
+// ---- 6. Tabla regresión ----
+function buildRegTable(){
+  let d = DATA.regresion;
+  let best = d.reduce((a,b)=>b.r2>a.r2?b:a);
+  let maxR2 = Math.max(...d.map(m=>m.r2));
+  let rows = d.map(m=>{
+    let win = m.modelo===best.modelo ? `<span class="winner-tag">Mejor</span>` : '';
+    return `<tr>
+      <td class="modelname">${m.modelo}${win}</td>
+      <td>
+        <span class="big-r2">${m.r2.toFixed(2)}</span>
+        <div class="metric-bar"><span style="width:${(m.r2/Math.max(maxR2,.01)*100).toFixed(0)}%"></span></div>
+      </td>
+      <td>${fmtTkShort(m.mae)}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('regTable').innerHTML =
+    `<thead><tr><th>Modelo</th><th>R² (explica el precio)</th><th>Error medio</th></tr></thead><tbody>${rows}</tbody>`;
+}
+
+// ---- Verdict ----
+function buildVerdict(){
+  let clf = DATA.clasificacion;
+  let reg = DATA.regresion;
+  let tree_clf = clf.find(m=>m.modelo.includes('Arbol'));
+  let nb = clf.find(m=>m.modelo.includes('Naive'));
+  let tree_reg = reg.find(m=>m.modelo.includes('Arbol'));
+  let lin = reg.find(m=>m.modelo.includes('Lineal'));
+  document.getElementById('verdictText').innerHTML =
+    `En clasificación alcanza un <b>${(tree_clf.acc*100).toFixed(0)}% de exactitud</b>, frente al ${(nb.acc*100).toFixed(0)}% de Naive Bayes. En regresión explica un <b>${(tree_reg.r2*100).toFixed(0)}% del precio</b> (R² ${tree_reg.r2.toFixed(2)}) contra el ${(lin.r2*100).toFixed(0)}% del modelo lineal, reduciendo el error a la mitad. El árbol puede segmentar por zona geográfica, algo que los otros modelos no logran capturar.`;
+}
+
+function updateCharts(){
+  updateCityChart(); updateCatChart(); updateScatter();
+}
+
+// ---- Init ----
+renderChips();
+renderKpis();
+buildCityChart();
+buildCatChart();
+buildScatter();
+buildClfChart();
+buildRegTable();
+buildVerdict();
+
+</script>
+</body>
+</html>
